@@ -1,0 +1,82 @@
+## Métodos/funciones de las referencias
+
+- `array.length`: devuelve el tamaño del array; en Java los arrays tienen longitud fija tras crearse y sus índices empiezan en 0, así que el último elemento válido es `length - 1`.[^1][^2]
+- `for (int i = 0; i < limite; i++)`: el `for` clásico recorre un rango con inicialización, condición de terminación e incremento, así que es la forma adecuada cuando necesitas parar exactamente en `numberOfDays` o en el tamaño del array.[^3]
+- `for (int x : birdsPerDay)`: el `for` mejorado recorre arrays secuencialmente y es útil cuando no necesitas índices ni cortar el recorrido en una posición concreta.[^3]
+- `Math.min(a, b)`: devuelve el menor de dos valores y te sirve para limitar `numberOfDays` al tamaño real del array antes de entrar al bucle.[^4]
+
+## Qué debería hacer cada método con error
+
+- `incrementTodaysCount()`: debe incrementar en 1 el valor del último día, no escribir en una posición nueva del array; por eso la forma correcta es usar el último índice válido.[^1][^2][^5]
+- `getCountForFirstDays(int numberOfDays)`: debe sumar solo los primeros `numberOfDays`; si piden más días de los que existen, debe sumar únicamente los disponibles.[^2][^3]
+- `getLastWeek()`: si estás resolviendo exactamente el ejercicio de Exercism, este método suele devolver la semana fija `{0, 2, 5, 3, 7, 8, 4}` en lugar del array recibido en el constructor.[^5]
+
+## Problemas encontrados en tu solución
+
+- En `incrementTodaysCount()` confundiste tamaño con índice: `birdsPerDay.length` vale 7, pero en un array de 7 elementos el último índice válido es 6, así que `birdsPerDay[birdsPerDay.length]` lanza `ArrayIndexOutOfBoundsException`.[^1][^2]
+- Además, hiciste `= 2`, lo que sustituye el valor actual; el test pide “incrementar”, es decir, sumar 1 al valor de hoy.[^5]
+- En `getCountForFirstDays()` la condición está invertida: cuando te piden 4 días acabas sumando toda la semana, y cuando te piden 10 recorres índices que no existen.[^2][^3]
+- `hasDayWithoutBirds()` está bien planteado, pero puede simplificarse devolviendo `true` en cuanto encuentre un 0.[^3]
+
+## Cómo evitar estos fallos en el futuro
+
+- Regla mental clave: `length` es la cantidad de elementos, no el último índice; si el array tiene 7 elementos, sus índices van de 0 a 6.[^1][^2]
+- Para recorrer “los primeros N”, crea siempre un límite seguro con `int limit = Math.min(numberOfDays, birdsPerDay.length);` y luego usa `i < limit`, no `i <= limit`.[^4][^3][^2]
+- Usa `for-each` para leer todos los valores y usa `for` con índice cuando necesites acceder a una posición concreta, detenerte antes del final o modificar un elemento específico.[^3]
+
+## Recomendación específica con código
+
+- Una versión corregida que respeta los límites del array y el comportamiento esperado por los tests es esta.[^1][^2][^3][^5]
+
+```java
+class BirdWatcher {
+    private final int[] birdsPerDay;
+
+    public BirdWatcher(int[] birdsPerDay) {
+        this.birdsPerDay = birdsPerDay.clone();
+    }
+
+    public int[] getLastWeek() {
+        return new int[] {0, 2, 5, 3, 7, 8, 4};
+    }
+
+    public int getToday() {
+        return birdsPerDay[birdsPerDay.length - 1];
+    }
+
+    public void incrementTodaysCount() {
+        birdsPerDay[birdsPerDay.length - 1]++;
+    }
+
+    public boolean hasDayWithoutBirds() {
+        for (int singleDayBirds : birdsPerDay) {
+            if (singleDayBirds == 0) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public int getCountForFirstDays(int numberOfDays) {
+        int countBirds = 0;
+        int limit = Math.min(numberOfDays, birdsPerDay.length);
+
+        for (int i = 0; i < limit; i++) {
+            countBirds += birdsPerDay[i];
+        }
+
+        return countBirds;
+    }
+
+    public int getBusyDays() {
+        int countBusyDays = 0;
+
+        for (int singleDayBirds : birdsPerDay) {
+            if (singleDayBirds >= 5) {
+                countBusyDays++;
+            }
+        }
+
+        return countBusyDays;
+    }
+}
